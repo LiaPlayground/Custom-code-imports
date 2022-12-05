@@ -3,7 +3,7 @@ author:   André Dietrich
 
 email:    LiaScript@web.de
 
-version:  0.0.1
+version:  0.0.2
 
 language: en
 
@@ -21,6 +21,57 @@ comment:  Demo of creating a custom loader for code-highlighting of code that ha
             response.text()
             .then((text) => {
                 send.lia("LIASCRIPT:\n``` @0\n" + text + "\n```")
+            })
+        } else {
+            send.lia("HTML: <span style='color: red'>Something went wrong, could not load <a href='@1'>@1</a></span>")
+        }
+    })
+    "loading: @1"
+</script>
+@end
+
+
+@import: https://raw.githubusercontent.com/LiaScript/CodeRunner/master/README.md
+
+@loadAndRun
+<script style="display: block" modify="false" run-once="true">
+    const url = "@1"
+
+    let execute = ""
+    
+    try {
+      const [file, ending] = url.match(/[^\/]+$/)[0].split(".")
+
+      switch(ending) {
+        case "java": {
+          execute = "@LIA.java(" + file + ")"
+          break
+        }
+        case "c": {
+          execute = "@LIA.gcc"
+          break
+        }
+        case "cpp": {
+          execute = "@LIA.g++"
+          break
+        }
+      }
+    } catch (e) {
+      console.warn("could not identify filename in", url)
+    }
+
+    fetch(url)
+    .then((response) => {
+        if (response.ok) {
+            response.text()
+            .then((text) => {
+
+                send.lia(`LIASCRIPT:
+\`\`\` @0
+${text}
+\`\`\`
+${execute}
+`)
             })
         } else {
             send.lia("HTML: <span style='color: red'>Something went wrong, could not load <a href='@1'>@1</a></span>")
@@ -100,7 +151,7 @@ will return an error message
 @[load.java](DoesNotExist.java)
 ````
 
-## Demo
+### Demo
 
 @load.java(App.java) --> might not work
 
@@ -117,3 +168,75 @@ will return an error message
 will return an error message
 
 @[load.java](DoesNotExist.java)
+
+
+## Load and Run
+
+This is a more sophisticated example, which additionally load the CodeRunner, for more information check out the following link:
+
+https://github.com/liaScript/coderunner
+
+... and it creates a script, which generates an executable code-block ...
+
+```` markdown
+<!--
+@import: https://raw.githubusercontent.com/LiaScript/CodeRunner/master/README.md
+
+@loadAndRun
+<script style="display: block" modify="false" run-once="true">
+    const url = "@1"
+
+    let execute = ""
+    
+    try {
+      const [file, ending] = url.match(/[^\/]+$/)[0].split(".")
+
+      switch(ending) {
+        case "java": {
+          execute = "@LIA.java(" + file + ")"
+          break
+        }
+        case "c": {
+          execute = "@LIA.gcc"
+          break
+        }
+        case "cpp": {
+          execute = "@LIA.g++"
+          break
+        }
+      }
+    } catch (e) {
+      console.warn("could not identify filename in", url)
+    }
+
+    fetch(url)
+    .then((response) => {
+        if (response.ok) {
+            response.text()
+            .then((text) => {
+
+                send.lia(`LIASCRIPT:
+\`\`\` @0
+${text}
+\`\`\`
+${execute}
+`)
+            })
+        } else {
+            send.lia("HTML: <span style='color: red'>Something went wrong, could not load <a href='@1'>@1</a></span>")
+        }
+    })
+    "loading: @1"
+</script>
+@end
+
+-->
+
+# Demo 2
+
+@[loadAndRun(java)](App.java)
+````
+
+### Demo 2
+
+@[loadAndRun(java)](App.java)
